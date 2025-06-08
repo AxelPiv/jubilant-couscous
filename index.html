@@ -17,6 +17,7 @@
   <form id="impactForm">
     <label for="user">Your Name</label>
     <input type="text" id="user" name="user" required />
+    
     <label for="category">Category</label>
     <select id="category" name="category" required>
       <option value="">--Select Category--</option>
@@ -26,15 +27,20 @@
       <option value="Water">Water</option>
       <option value="Energy">Energy</option>
     </select>
+
     <label for="action">Action</label>
     <select id="action" name="action" required>
       <option value="">--Select Action--</option>
     </select>
+
     <label for="quantity">Quantity</label>
     <input type="number" id="quantity" name="quantity" min="1" required />
+
     <button type="submit">Log Impact</button>
   </form>
+
   <p id="status"></p>
+
   <script>
     const actions = {
       Diet: ["Ate vegetarian meal"],
@@ -43,8 +49,10 @@
       Water: ["Shortened shower (5 mins)"],
       Energy: ["Turned off lights"]
     };
+
     const categorySelect = document.getElementById("category");
     const actionSelect = document.getElementById("action");
+
     categorySelect.addEventListener("change", () => {
       const category = categorySelect.value;
       actionSelect.innerHTML = '<option value="">--Select Action--</option>';
@@ -58,30 +66,38 @@
         });
       }
     });
+
     document.getElementById("impactForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+
       const user = document.getElementById("user").value;
       const category = document.getElementById("category").value;
       const action = document.getElementById("action").value;
       const quantity = document.getElementById("quantity").value;
       const timestamp = new Date().toISOString();
+
+      const formData = new FormData();
+      formData.append("user", user);
+      formData.append("category", category);
+      formData.append("action", action);
+      formData.append("quantity", quantity);
+      formData.append("timestamp", timestamp);
+
       const endpoint = "https://script.google.com/macros/s/AKfycbyK-NHyk7sTrWeTMG6t4Y_G9eaNvEUzfE3bx5m1EUaEFHRjJUGRvEVlItFM4deBiMU6ig/exec";
-      const data = { user, category, action, quantity, timestamp };
-      console.log("Sending data via POST:", data);
+
       try {
         const res = await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: formData
         });
-        const result = await res.json();
-        if (res.ok && result.result === "Success") {
+
+        if (res.ok) {
           document.getElementById("status").textContent = "✅ Impact logged successfully!";
           document.getElementById("impactForm").reset();
           actionSelect.innerHTML = '<option value="">--Select Action--</option>';
-          console.log("Data sent successfully:", result);
+          console.log("Form submitted successfully");
         } else {
-          throw new Error(result.message || "Unknown error");
+          throw new Error("HTTP error " + res.status);
         }
       } catch (err) {
         document.getElementById("status").textContent = "❌ Failed to log impact: " + err.message;
@@ -91,3 +107,4 @@
   </script>
 </body>
 </html>
+
